@@ -1,12 +1,12 @@
 # InventoryIQ
 
-> A Microsoft 365 Copilot agent for IT asset & datacenter reasoning, grounded in **Foundry IQ**.
+> A Microsoft Foundry agent for IT asset & datacenter reasoning, grounded in **Foundry IQ** over a live Azure AI Search knowledge source.
 
 Built for the [Microsoft Agents League Hackathon](https://innovationstudio.microsoft.com/hackathons/Agents-League-Hackathon) — Enterprise Agents track, June 4–14 2026.
 
 ## What it does
 
-Ask your IT estate anything from Teams, Outlook, or Microsoft 365 Chat:
+Ask your IT estate anything in natural language and get a grounded, cited answer:
 
 - *"Which servers in Building B / Floor 2 raised critical alerts in the last 24 hours?"*
 - *"Show laptops assigned to the Finance department that haven't checked in for 7 days."*
@@ -24,33 +24,34 @@ Every answer is grounded in **Microsoft Foundry IQ** over an Azure AI Search kno
  │  (.NET 10 API)      │              │
  └─────────────────────┘              ▼
                               ┌───────────────────┐
-                              │  api/Ingest       │  (scheduled push)
-                              │  .NET worker      │
+                              │  grounding/       │  ingestion script
+                              │  scripts/         │  (Python)
                               └─────────┬─────────┘
                                         ▼
    ┌──────────────────────────────────────────────────────┐
-   │  Azure AI Search index  (inv-index)                  │
-   │   assets / locations / blueprints /                  │
-   │   monitoring_records / alerts                        │
-   │   + vector embeddings for hybrid retrieval           │
+   │  Azure AI Search index  inv-index                    │
+   │   685 docs: asset + alert                            │
+   │   1536-dim vector embeddings (text-embedding-3-small)│
+   │   semantic ranking enabled                           │
    └─────────────────────────┬────────────────────────────┘
                              ▼
                    ┌───────────────────┐
                    │  Foundry IQ       │  knowledge source
-                   │  (Azure AI        │  registered in the
-                   │   Foundry project)│  inventoryiq project
+                   │  inv-knowledge    │  registered in the
+                   │  (semantic mode)  │  inventoryiq project
                    └─────────┬─────────┘
                              ▼
                    ┌───────────────────┐
-                   │  M365 Copilot     │  declarative agent
-                   │  declarative      │  (Teams / Outlook / M365 Chat)
-                   │  agent            │
+                   │ Foundry Agent     │  asst_v8Ye8v2iTPsBXRXWjDny8pRj
+                   │ "InventoryIQ"     │  gpt-4o + instructions + grounding
+                   │ (Foundry Agents)  │
                    └───────────────────┘
 
   ▼ Local fallback for judges without an Azure tenant
    ┌──────────────────────────────┐
    │  demo/  (Streamlit + DuckDB) │
    │  same schema, same questions │
+   │  pastel themed UI            │
    └──────────────────────────────┘
 ```
 
@@ -58,11 +59,11 @@ Every answer is grounded in **Microsoft Foundry IQ** over an Azure AI Search kno
 
 | Folder | What's in it |
 |---|---|
-| `agent/` | Microsoft 365 Copilot declarative agent — `manifest.json`, `instructions.md`, action plugins |
-| `grounding/` | Foundry IQ side — ingestion script, index schema, Foundry project config |
-| `api/` | .NET worker that mirrors InventoryMapper → Azure AI Search |
-| `demo/` | **Local-runnable Streamlit chat over DuckDB.** What reviewers without an Azure tenant use. |
-| `docs/` | Architecture diagrams, demo script, Foundry setup checklist |
+| `agent/` | Declarative-agent manifest (`manifest.json`) + system-prompt instructions + action plugin definition. Used as documentation of the deployed agent and as a Copilot Studio import target if a Teams surface is added later. |
+| `grounding/scripts/` | `01_index_inventorymapper.py` — ingests asset + alert rows into Azure AI Search with embeddings. |
+| `api/` | (Reserved) .NET worker for real InventoryMapper → Search ingestion in production. |
+| `demo/` | **Local-runnable Streamlit chat over DuckDB.** What reviewers without an Azure tenant use. Same schema, same questions, same answers. |
+| `docs/` | Foundry setup guide + demo video script. |
 
 ## Microsoft IQ integration
 
@@ -70,59 +71,77 @@ This project integrates **Foundry IQ** as required by the hackathon rules.
 
 | Layer | Where it lives |
 |---|---|
-| **Reasoning model** | Azure AI Foundry project `inventoryiq` — `gpt-4o-mini` deployment for chat, `text-embedding-3-small` for vectors |
-| **Knowledge source** | Azure AI Search index `inv-index` registered as a Foundry knowledge source |
-| **Grounding** | Configured in `agent/manifest.json` → `groundingSources[0]` points at the Foundry knowledge source |
-| **Action skill** | `agent/actions/draft_procurement_ticket.json` — turns a finding into a ticket draft |
+| **Reasoning model** | Azure AI Foundry project `inventoryiq` — `gpt-4o` deployment for chat, `text-embedding-3-small` for vectors |
+| **Knowledge source** | Azure AI Search index `inv-index` registered as Foundry knowledge source `inv-knowledge` (semantic mode) |
+| **Grounding binding** | Configured directly on the Foundry agent — every reply pulls grounded passages from `inv-knowledge` and cites them |
+| **Deployed agent** | `InventoryIQ` (`asst_v8Ye8v2iTPsBXRXWjDny8pRj`) — Foundry-hosted, GA on the same Foundry project, testable in the built-in playground |
+| **Action skill (planned)** | `agent/actions/draft_procurement_ticket.json` — turns a finding into a ticket draft |
 
-> Why Foundry IQ over Fabric IQ for this build: Fabric trial provisioning is gated for tenants created from Azure free signups, while Foundry IQ runs entirely inside Azure AI Foundry on the same Azure credit. The repo's grounding contract is identical either way — same tools, same citations — so a Fabric IQ swap is a one-day addition.
+> **Why Foundry IQ over Fabric IQ:** Fabric trial provisioning is currently gated for tenants created from Azure free signups (the trial dialog returned `BadRequest` for our region pair). Foundry IQ runs entirely inside Azure AI Foundry on the same Azure credit and provides the same grounding contract — a real RAG index with semantic ranking and source citations. The repo's grounding shape is identical either way, so a future Fabric IQ swap is a one-day addition.
 
 ## Quick start — local demo (no Azure needed)
+
+> ⚡ **This local demo version does NOT require an Azure tenant, M365 subscription, or API keys.** It is the primary way for judges to verify functionality if an Azure environment is unavailable.
 
 ```powershell
 cd demo
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python seed.py          # builds inv.duckdb with ~500 assets, 30 days of monitoring, ~50 alerts
+python seed.py            # builds inv.duckdb with ~500 assets, 30 days of monitoring, ~185 alerts
 streamlit run app.py
 ```
 
-Opens at <http://localhost:8501>. Try one of the demo questions above.
+Opens at <http://localhost:8501>.
 
-##  Step-by-Step Demo Testing
+### Step-by-step demo testing
 
-> [!IMPORTANT]
-> **This local demo version does NOT require an Azure tenant, M365 subscription, or API keys.** It is the primary way for judges to verify functionality if an Azure environment is unavailable.
-
-1. **Setup Environment**: From the `demo/` folder, install dependencies: `pip install -r requirements.txt`.
-2. **Generate Mock Data**: Run `python seed.py`. This builds the local `inv.duckdb` file populated with ~500 assets and 30 days of history.
-3. **Run the Dashboard**: Execute `streamlit run app.py` to launch the local chat interface.
-4. **Submit a Query**: Use the sidebar to click a sample question (e.g., *"Which servers in Building B raised critical alerts?"*).
-5. **Observe Grounding**: 
-   - Watch the **Tool Call** chips show the internal routing and database queries.
-   - Inspect the **Data Tables** and **Citations** provided in the assistant's response to see how it justifies its answer using the local database.
+1. **Setup environment** — From `demo/`, install dependencies: `pip install -r requirements.txt`.
+2. **Generate mock data** — Run `python seed.py`. Builds the local `inv.duckdb` populated with ~500 assets, 30 days of monitoring history, ~185 alerts.
+3. **Run the dashboard** — `streamlit run app.py` launches the local chat interface.
+4. **Submit a query** — Use the sidebar to click a sample question, or type a free-form one (e.g., *"Which servers in Building B raised critical alerts?"*).
+5. **Observe grounding**:
+   - Cyan **tool-call chips** show which grounding function was invoked.
+   - The **data tables** show the rows the agent grounded on.
+   - The **📎 citations** expander shows the lakehouse table + row IDs.
+6. **(Optional) Real LLM mode** — Set `AZURE_OPENAI_*` in `.env` (see `.env.example`). With keys set, sidebar questions trigger real `gpt-4o` tool-calling with conversational synthesis instead of deterministic routing.
+7. **Theme toggle** — Sidebar **Theme** button switches between dark and light pastel themes.
 
 ## Quick start — Foundry IQ deployment
 
-1. **Provision** Azure AI Foundry project + Azure AI Search Free + Azure OpenAI (see [`docs/foundry_setup.md`](docs/foundry_setup.md)).
+1. **Provision** Azure AI Foundry project + Azure AI Search Free + Azure OpenAI (see [`docs/foundry_setup.md`](docs/foundry_setup.md)). Total cost during the hackathon: < $5 of Azure free credit.
 2. **Configure** `.env` from `.env.example` with your endpoints and keys.
-3. **Index** — run `python grounding/scripts/01_index_inventorymapper.py` to push the lakehouse schema into Azure AI Search.
-4. **Register** the index as a knowledge source in your Foundry project.
-5. **Deploy agent** — see [`agent/README.md`](agent/README.md) for the Copilot Studio import.
+3. **Index the data**:
+   ```powershell
+   python grounding/scripts/01_index_inventorymapper.py --rebuild
+   ```
+   Reads from `demo/inv.duckdb` (or your real InventoryMapper SQL Server) and pushes ~685 documents into `inv-index` with embeddings via `text-embedding-3-small`.
+4. **Register** `inv-index` as a Foundry knowledge source: in the Foundry project → **Agentes → Create new** → add Azure AI Search as a knowledge source → pick `inv-index` → name `inv-knowledge` → semantic search mode.
+5. **Configure the agent** with the instructions in `agent/instructions.md` and bind the knowledge source.
+6. **Test** in the Foundry Agents playground — see `docs/demo_script.md` for the suggested 3-minute demo flow.
 
 ## Status
 
 | Track | Status |
 |---|---|
 | Local demo over DuckDB | ✅ working |
-| Mock lakehouse + seed | ✅ working |
-| Grounding tools + citations | ✅ working |
-| Declarative agent manifest | ✅ drafted |
-| Azure AI Search index | 🟡 pending Azure provisioning |
-| Foundry IQ knowledge source | 🟡 pending Azure provisioning |
-| End-to-end Copilot Studio publish | ⚪ pending |
-| Demo video | ⚪ pending |
+| Mock lakehouse + seed (685 rows: 500 assets, 185 alerts, 30 locations, 9 blueprints) | ✅ working |
+| Grounding tools + citations (Streamlit demo) | ✅ working |
+| Streamlit chat with real `gpt-4o` tool-calling | ✅ working |
+| Pastel UI with dark + light theme toggle | ✅ working |
+| Declarative agent manifest (Copilot Studio compatible) | ✅ drafted |
+| Azure AI Search index `inv-index` | ✅ deployed (685 docs indexed) |
+| Foundry IQ knowledge source `inv-knowledge` | ✅ connected (semantic mode) |
+| Foundry-hosted agent `InventoryIQ` | ✅ deployed + validated in playground |
+| Demo video | 🟡 in progress |
+| README + repo polish + GitHub push | 🟡 in progress |
+
+## Demo video
+
+See [`docs/demo_script.md`](docs/demo_script.md) for the 3-minute walkthrough script. Both surfaces are demoed:
+
+1. The **Foundry-hosted agent** (real IQ integration) answering a sequence of IT-asset questions in the Foundry playground.
+2. The **Streamlit fallback** (offline-runnable) answering the same questions over the DuckDB mock.
 
 ## Disclaimer
 
