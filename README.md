@@ -90,6 +90,19 @@ streamlit run app.py
 
 Opens at <http://localhost:8501>. Try one of the demo questions above.
 
+##  Step-by-Step Demo Testing
+
+> [!IMPORTANT]
+> **This local demo version does NOT require an Azure tenant, M365 subscription, or API keys.** It is the primary way for judges to verify functionality if an Azure environment is unavailable.
+
+1. **Setup Environment**: From the `demo/` folder, install dependencies: `pip install -r requirements.txt`.
+2. **Generate Mock Data**: Run `python seed.py`. This builds the local `inv.duckdb` file populated with ~500 assets and 30 days of history.
+3. **Run the Dashboard**: Execute `streamlit run app.py` to launch the local chat interface.
+4. **Submit a Query**: Use the sidebar to click a sample question (e.g., *"Which servers in Building B raised critical alerts?"*).
+5. **Observe Grounding**: 
+   - Watch the **Tool Call** chips show the internal routing and database queries.
+   - Inspect the **Data Tables** and **Citations** provided in the assistant's response to see how it justifies its answer using the local database.
+
 ## Quick start — Foundry IQ deployment
 
 1. **Provision** Azure AI Foundry project + Azure AI Search Free + Azure OpenAI (see [`docs/foundry_setup.md`](docs/foundry_setup.md)).
