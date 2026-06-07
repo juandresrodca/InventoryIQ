@@ -1,0 +1,38 @@
+{
+  "$schema": "https://aka.ms/json-schemas/copilot/plugin/v2.1/schema.json",
+  "schema_version": "v2.1",
+  "namespace": "inventoryiq",
+  "name_for_human": "Draft Procurement Ticket",
+  "description_for_human": "Drafts a procurement / replacement-parts ticket from a list of affected assets.",
+  "description_for_model": "Use this action to draft a procurement ticket text when the user asks to order replacement hardware, drives, or other parts based on a set of assets returned by a prior grounding query. Input: a short context note + a list of asset hostnames. Output: ticket draft (subject, body, justification, suggested vendor).",
+  "functions": [
+    {
+      "name": "drafTicket",
+      "description": "Draft a procurement ticket for replacement parts.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "context": {"type": "string", "description": "Short justification, e.g. 'Q2 disk failure pattern in Building B'."},
+          "asset_hostnames": {"type": "array", "items": {"type": "string"}, "description": "Hostnames affected."},
+          "part_type": {"type": "string", "enum": ["Disk", "PSU", "Memory", "NetworkCard", "Server", "Other"]},
+          "urgency": {"type": "string", "enum": ["Standard", "Expedited", "Emergency"], "default": "Standard"}
+        },
+        "required": ["context", "asset_hostnames", "part_type"]
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "subject": {"type": "string"},
+          "body": {"type": "string"},
+          "suggested_vendor": {"type": "string"}
+        }
+      }
+    }
+  ],
+  "runtime": {
+    "type": "OpenApi",
+    "auth": {"type": "None"},
+    "spec": {"url": "https://example.com/inventoryiq/openapi.yaml"},
+    "note": "Replace with your deployed action API. For the demo, this is mocked in demo/app.py."
+  }
+}

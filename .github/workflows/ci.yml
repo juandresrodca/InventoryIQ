@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  demo:
+    name: Lint + smoke-test the demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        working-directory: demo
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt ruff
+      - name: Lint
+        working-directory: demo
+        run: ruff check .
+      - name: Seed (small) + smoke-test grounding
+        working-directory: demo
+        run: |
+          python seed.py --assets 50 --days 3
+          python -c "import grounding; print(grounding.kpi_summary())"

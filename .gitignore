@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.local.json
+*.secret
+
+# DuckDB local state
+*.duckdb
+*.duckdb.wal
+
+# Streamlit
+.streamlit/secrets.toml
+
+# .NET
+bin/
+obj/
+*.user
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Notebook outputs
+.ipynb_checkpoints/

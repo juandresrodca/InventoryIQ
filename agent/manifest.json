@@ -1,0 +1,57 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.2/schema.json",
+  "version": "v1.2",
+  "name": "InventoryIQ",
+  "description": "Conversational agent for IT asset & datacenter reasoning. Grounded in Microsoft Foundry IQ over an Azure AI Search knowledge source mirrored from InventoryMapper.",
+  "instructions": "file://instructions.md",
+  "conversation_starters": [
+    {
+      "title": "Critical alerts today",
+      "text": "Which servers raised critical alerts in the last 24 hours?"
+    },
+    {
+      "title": "Stale Finance laptops",
+      "text": "Show laptops assigned to Finance that haven't checked in for 7 days."
+    },
+    {
+      "title": "Unsupported OS audit",
+      "text": "Which assets are running unsupported OS versions? Group by building."
+    },
+    {
+      "title": "Warranty horizon",
+      "text": "Whose warranty expires in the next 90 days?"
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "WebSearch",
+      "enabled": false
+    },
+    {
+      "name": "OneDriveAndSharePoint",
+      "enabled": false
+    },
+    {
+      "name": "FoundryKnowledge",
+      "grounding_sources": [
+        {
+          "type": "azure_ai_search",
+          "endpoint": "${AZURE_SEARCH_ENDPOINT}",
+          "index_name": "${AZURE_SEARCH_INDEX}",
+          "auth": "managed_identity",
+          "description": "InventoryIQ knowledge index: assets, locations, blueprints, monitoring records, alerts."
+        }
+      ],
+      "foundry_project": {
+        "endpoint": "${AZURE_AI_FOUNDRY_ENDPOINT}",
+        "project_name": "${AZURE_AI_FOUNDRY_PROJECT}"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "draftProcurementTicket",
+      "file": "actions/draft_procurement_ticket.json"
+    }
+  ]
+}

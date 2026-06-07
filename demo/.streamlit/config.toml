@@ -1,0 +1,17 @@
+# InventoryIQ — Streamlit theme.
+# Dark by default. Light variant lives in app.py CSS overrides triggered by the sidebar toggle.
+
+[theme]
+base               = "dark"
+primaryColor       = "#8B5CF6"   # Foundry-aligned purple
+backgroundColor    = "#0B0F1A"   # near-black canvas
+secondaryBackgroundColor = "#11182B"   # panel
+textColor          = "#E5E7EB"
+font               = "sans serif"
+
+[server]
+headless = true
+runOnSave = true
+
+[browser]
+gatherUsageStats = false
