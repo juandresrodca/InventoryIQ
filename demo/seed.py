@@ -9,7 +9,10 @@ Run: python seed.py [--db inv.duckdb] [--assets 500] [--days 30]
 """
 
 from __future__ import annotations
-import argparse, os, random, uuid
+import argparse
+import os
+import random
+import uuid
 from datetime import datetime, timedelta, date
 
 import duckdb
@@ -69,7 +72,7 @@ def build_locations() -> list[dict]:
 
 def build_blueprints(locations: list[dict]) -> list[dict]:
     bps = []
-    physical = [l for l in locations if l["location_type"] == "Physical"]
+    physical = [loc for loc in locations if loc["location_type"] == "Physical"]
     # One blueprint per (building, floor)
     seen = set()
     for loc in physical:
@@ -94,16 +97,16 @@ def build_assets(n: int, locations: list[dict], blueprints: list[dict]) -> list[
         os_version = random.choice(versions)
         # Laptops/desktops more likely in office areas; servers in server rooms
         if atype in ("Server", "NetworkSwitch", "Router", "Firewall"):
-            loc = random.choice([l for l in locations if l["room"] in ("Server Room", "Cold Aisle") or l["location_type"] == "Cloud"])
+            loc = random.choice([item for item in locations if item["room"] in ("Server Room", "Cold Aisle") or item["location_type"] == "Cloud"])
         else:
-            loc = random.choice([l for l in locations if l["location_type"] == "Physical"])
+            loc = random.choice([item for item in locations if item["location_type"] == "Physical"])
 
         # Maybe placed on a blueprint matching this location's building+floor
         bp = next((b for b in blueprints if b["location_id"] == loc["id"]), None)
         if bp is None and loc["location_type"] == "Physical":
             # Find a blueprint for the same building+floor (any room)
-            same_floor_locs = [l["id"] for l in locations
-                               if l["building"] == loc["building"] and l["floor"] == loc["floor"]]
+            same_floor_locs = [item["id"] for item in locations
+                               if item["building"] == loc["building"] and item["floor"] == loc["floor"]]
             bp = next((b for b in blueprints if b["location_id"] in same_floor_locs), None)
 
         last_checkin_delta_hours = random.choices(
@@ -235,8 +238,8 @@ def main() -> None:
     con.executemany(
         "INSERT INTO locations(id,name,location_type,building,floor,room,rack,site,cloud_provider,cloud_region) "
         "VALUES (?,?,?,?,?,?,?,?,?,?)",
-        [(l["id"], l["name"], l["location_type"], l["building"], l["floor"], l["room"],
-          l["rack"], l["site"], l["cloud_provider"], l["cloud_region"]) for l in locations],
+        [(loc["id"], loc["name"], loc["location_type"], loc["building"], loc["floor"], loc["room"],
+          loc["rack"], loc["site"], loc["cloud_provider"], loc["cloud_region"]) for loc in locations],
     )
 
     print("Building blueprints...")

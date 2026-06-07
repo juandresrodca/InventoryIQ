@@ -46,9 +46,11 @@ def assets_by_alert_severity(severity: str = "Critical",
     """
     params: list[Any] = [severity, datetime.utcnow() - timedelta(hours=hours)]
     if building:
-        sql += " AND l.building = ?"; params.append(building)
+        sql += " AND l.building = ?"
+        params.append(building)
     if floor:
-        sql += " AND l.floor = ?"; params.append(floor)
+        sql += " AND l.floor = ?"
+        params.append(floor)
     sql += " ORDER BY al.created_at DESC LIMIT 50"
     rows = con.execute(sql, params).fetchdf().to_dict("records")
     con.close()

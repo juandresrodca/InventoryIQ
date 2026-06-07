@@ -7,10 +7,11 @@ so the demo and the real agent answer the same questions the same way.
 """
 
 from __future__ import annotations
-import json, os, traceback
+import json
+import os
+import traceback
 import streamlit as st
 from dotenv import load_dotenv
-import pandas as pd
 
 import grounding
 import theme as ui
