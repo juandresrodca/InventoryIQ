@@ -134,7 +134,7 @@ Opens at <http://localhost:8501>.
 | Foundry IQ knowledge source `inv-knowledge` | ✅ connected (semantic mode) |
 | Foundry-hosted agent `InventoryIQ` | ✅ deployed + validated in playground |
 | Demo video | 🟡 in progress |
-| README + repo polish + GitHub push | 🟡 in progress |
+| README + repo polish + GitHub push | ✅ deployed |
 
 ## Demo video
 
