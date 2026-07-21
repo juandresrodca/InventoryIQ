@@ -14,7 +14,7 @@ Ask your IT estate anything in natural language and get a grounded, cited answer
 - *"Which Windows assets are running unsupported OS versions, grouped by location?"*
 - *"Draft a procurement ticket for replacement drives based on this quarter's failure pattern."*
 
-Every answer is grounded in **Microsoft Foundry IQ** over an Azure AI Search knowledge source mirrored from the [InventoryMapper](https://github.com/juandresrodca) .NET 10 asset platform, with citations back to the source row.
+Every answer is grounded in **Microsoft Foundry IQ** over an Azure AI Search knowledge source mirrored from the [InventoryMapper](https://github.com/juandresrodca/InventoryMaper) .NET 10 asset platform, with citations back to the source row.
 
 ## Architecture
 
