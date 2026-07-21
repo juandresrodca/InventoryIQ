@@ -136,12 +136,6 @@ Opens at <http://localhost:8501>.
 | Demo video | 🟡 in progress |
 | README + repo polish + GitHub push | ✅ deployed |
 
-## Demo video
-
-See [`docs/demo_script.md`](docs/demo_script.md) for the 3-minute walkthrough script. Both surfaces are demoed:
-
-1. The **Foundry-hosted agent** (real IQ integration) answering a sequence of IT-asset questions in the Foundry playground.
-2. The **Streamlit fallback** (offline-runnable) answering the same questions over the DuckDB mock.
 
 ## Disclaimer
 
