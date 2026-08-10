@@ -15,7 +15,7 @@ streamlit run app.py
 
 App opens at <http://localhost:8501>.
 
-## Configure the LLM (optional but recommended)
+## Configure the LLM (optional but  recommended)
 
 Without an LLM the app still works in **deterministic routing** mode — each
 sidebar question maps to one grounding tool and you see real lakehouse rows.
@@ -30,7 +30,7 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
 AZURE_OPENAI_API_VERSION=2024-10-21
 ```
 
-## What the agent grounds on
+## What the agent grounds on :
 
 All answers come from these typed tools (see `grounding.py`):
 
