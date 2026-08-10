@@ -1,7 +1,7 @@
 # InventoryIQ — local demo
 
-A Streamlit chat over a DuckDB mock lakehouse that mirrors the Fabric lakehouse
-schema. Use this when you don't have an M365 tenant handy.
+A Streamlit chat over a DuckDB mock lakehouse that mirrors the Fabric  lakehouse
+schema. Use this when you don't have an M365 tenant handy
 
 ## Run
 
@@ -17,7 +17,7 @@ App opens at <http://localhost:8501>.
 
 ## Configure the LLM (optional but  recommended)
 
-Without an LLM the app still works in **deterministic routing** mode — each
+Without an LLM the app still works in **deterministic routing** mode, each
 sidebar question maps to one grounding tool and you see real lakehouse rows.
 But the conversational answer + multi-tool reasoning needs Azure OpenAI.
 
